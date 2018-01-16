@@ -1,2 +1,0 @@
-# dynamo
-DynAMo Web Application

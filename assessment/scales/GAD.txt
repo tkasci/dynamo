@@ -1,0 +1,7 @@
+"Fühlten Sie sich durch Nervosität, Ängstlichkeit oder Anspannung beeinträchtigt? (0 = nie, 100 = sehr häufig)"
+"Waren Sie nicht in der Lage, Ihre Sorgen zu stoppen oder zu kontrollieren? (0 = nie, 100 = sehr häufig)"
+"Hatten Sie übermäßige Sorgen bezüglich verschiedener Angelegenheiten? (0 = nie, 100 = sehr häufig)"
+"Hatten Sie Schwierigkeiten, zu entspannen? (0 = nie, 100 = sehr häufig)"
+"Waren Sie rastlos, so dass Stillsitzen Ihnen schwer fiel? (0 = nie, 100 = sehr häufig)"
+"Waren Sie schnell verärgert oder gereizt? (0 = nie, 100 = sehr häufig)"
+"Hatten Sie ein Gefühl der Angst, so als würde etwas Schlimmes passieren? (0 = nie, 100 = sehr häufig)"

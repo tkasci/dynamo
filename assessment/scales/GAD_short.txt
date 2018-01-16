@@ -1,0 +1,7 @@
+GAD_Nervös
+GAD_NorgenUnkontrolliert
+GAD_ÜbermäßigeSorgen
+GAD_NichtEntspannen
+GAD_Rastlosigkeit
+GAD_Gereizt
+GAD_Angst
