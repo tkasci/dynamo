@@ -16,13 +16,13 @@ require(fBasics)
 require(purrr)
 require(qgraph)
 require(dyncomp)
-source("/srv/shiny-server/explorer/functions.R")
+source("./functions.R")
 source("https://raw.githubusercontent.com/tkaiser86/r-scripts/master/VARtoEdges.R")
 pdf(NULL)
 
 
 shinyServer(function(input, output, session) {
-  roots <- c(wd = '/srv/shiny-server/data/')
+  roots <- c(wd = '.')
   shinyFileChoose(input, 'file', roots = roots, session = session)
   
   values <- reactiveValues()
@@ -36,10 +36,7 @@ shinyServer(function(input, output, session) {
       answers = answers,
       questions = questions,
       questions.short = questions.short,
-      df.answers = df.answers,
-      mat.answers = mat.answers
-      #scaleMax=scaleMax,
-      #scaleMin=scaleMin
+      df.answers = df.answers
     )
   })
   
@@ -81,38 +78,16 @@ shinyServer(function(input, output, session) {
     df <-
       melt(values$loaded$df.answers[min:max, ], id.vars = "date") %>% purrr::keep(is.numeric)
     
-    
-    #scaleLow <- values$loaded$scaleMin[grep(input$plotselection, colnames(values$loaded$df.answers))]
-    #scaleHi <- values$loaded$scaleMax[grep(input$plotselection, colnames(values$loaded$df.answers))]
-    
-    scaleLow <- 0
-    scaleHi <- 100
-    
-    print(scaleLow) #For Debugging
-    print(scaleHi)
-    
     yvar <- melt(values$loaded$df.answers[min:max, ], id.vars = "date")
     yvar$date <- yvar$date
     yvar$value <- as.numeric(yvar$value)
     yvarSelected <- yvar[yvar$variable == input$plotselection, ]
     yvarComp <- yvarSelected
     yvarComp$value <-
-      scales::rescale(
-        complexity(
+              complexity(
           yvarSelected$value,
-          scaleMin = scaleLow,
-          scaleMax = scaleHi,
           width = 5
-        ),
-        to = c(scaleLow, scaleHi)
-      )
-    session <-
-      data.frame(x = as.numeric(as.Date(
-        subset(
-          values$loaded$df.answers,
-          values$loaded$df.answers[, ncol(values$loaded$df.answers)] == "Ja"
-        )$date
-      )))
+        )
     
     ggplotly(
       ggplot(yvarSelected, aes(x = date, y = value)) +
@@ -121,7 +96,6 @@ shinyServer(function(input, output, session) {
         #geom_smooth() +
         #geom_vline(data = session, aes(xintercept = x), linetype = "longdash", colour= "black") +
         geom_line() +
-        expand_limits(y = scaleLow:scaleHi) +
         theme(legend.title = element_blank()) +
         scale_x_datetime()
     )
@@ -137,59 +111,23 @@ shinyServer(function(input, output, session) {
       melt(values$loaded$df.answers[min:max, ], id.vars = "date") %>% purrr::keep(is.numeric)
     
     
-    #scaleLow <- values$loaded$scaleMin[grep(input$plotselection, colnames(values$loaded$df.answers))]
-    #scaleHi <- values$loaded$scaleMax[grep(input$plotselection, colnames(values$loaded$df.answers))]
-    
-    scaleLow <- 0
-    scaleHi <- 100
-    
-    print(scaleLow) #For Debugging
-    print(scaleHi)
-    
     yvar <- melt(values$loaded$df.answers[min:max, ], id.vars = "date")
     yvar$date <- yvar$date
     yvar$value <- as.numeric(yvar$value)
     yvarSelected <- yvar[yvar$variable == input$plotselection, ]
     yvarComp <- yvarSelected
     yvarComp$value <-
-      scales::rescale(
         complexity(
           yvarSelected$value,
-          scaleMin = scaleLow,
-          scaleMax = scaleHi,
           width = 5
-        ),
-        to = c(scaleLow, scaleHi)
       )
-    session <-
-      data.frame(x = as.numeric(as.Date(
-        subset(
-          values$loaded$df.answers,
-          values$loaded$df.answers[, ncol(values$loaded$df.answers)] == "Ja"
-        )$date
-      )))
     
     ggplotly(
       ggplot(yvarComp, aes(x = date, y = value)) +
         ggtitle("Dynamic Complexity") +
         geom_point() +
         geom_smooth() +
-        geom_hline(
-          aes(
-            yintercept = qnorm(.95) * sd(yvarComp$value[1:length(yvarComp$value - 5)]) + mean(yvarComp$value[1:length(yvarComp$value -
-                                                                                                                        5)])
-          ),
-          linetype = "longdash",
-          colour = "red"
-        ) +
-        geom_vline(
-          data = session,
-          aes(xintercept = x),
-          linetype = "longdash",
-          colour = "red"
-        ) +
         geom_line() +
-        expand_limits(y = scaleLow:scaleHi) +
         theme(legend.title = element_blank()) +
         scale_x_datetime()
     )
@@ -222,19 +160,7 @@ shinyServer(function(input, output, session) {
       format = format
     )
   })
-  
-  output$data.item.table <- renderDataTable({
-    table  <-
-      as.data.frame((sort(
-        round(values$loaded$current_model$data.scores, 3),
-        decreasing = TRUE
-      ) * 100))
-    table <-
-      cbind(table, values$loaded$questions[rownames(table) %in% values$loaded$questions.short])
-    colnames(table) <- c("Normalized Score", "Item Text")
-    table
-  })
-  
+   
   # Recurrence Plot
   output$recurrencePlot <- renderPlot({
     min <-

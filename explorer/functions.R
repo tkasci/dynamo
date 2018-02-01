@@ -24,6 +24,13 @@ pacman::p_load(
 
 # Helper Functions ----
 
+zerovar <- function(dat) {
+  out <- lapply(dat, function(x) length(unique(x)))
+  want <- which(!out > 1)
+  unlist(want)
+}
+
+
 var_to_df <- function(x) {
   if (x$K == 2) {
     coefs <- cbind(
