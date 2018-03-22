@@ -21,7 +21,8 @@ shinyUI(fluidPage(
                  htmlOutput("patinfo"),
                  checkboxInput("showRaw", "Raw Plot", TRUE),
                  checkboxInput("showRecurr", "Recurrence Plot", FALSE),
-                 checkboxInput("showComplexity", "Complexity Plot", TRUE)
+                 checkboxInput("showComplexity", "Complexity Plot", TRUE),
+                 checkboxInput("makeScale", "Make scale", FALSE)
                  ),
     mainPanel(
       tabsetPanel(

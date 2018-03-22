@@ -75,22 +75,22 @@ shinyServer(function(input, output, session) {
       which(as.Date(values$loaded$df.answers$date) == input$rawdaterange[1])
     max <-
       which(as.Date(values$loaded$df.answers$date) == input$rawdaterange[2])
-    df <-
-      melt(values$loaded$df.answers[min:max, ], id.vars = "date") %>% purrr::keep(is.numeric)
+    #df <-
+    #  melt(values$loaded$df.answers[min:max, ], id.vars = "date") %>% purrr::keep(is.numeric)
     
-    yvar <- melt(values$loaded$df.answers[min:max, ], id.vars = "date")
-    yvar$date <- yvar$date
-    yvar$value <- as.numeric(yvar$value)
-    yvarSelected <- yvar[yvar$variable == input$plotselection, ]
-    yvarComp <- yvarSelected
-    yvarComp$value <-
-              complexity(
-          yvarSelected$value,
-          width = 5
-        )
-    
+    yvar <- values$loaded$df.answers[min:max, c(input$plotselection,"date")]
+    yvar.m <- melt(yvar, id.vars = "date")
+    #yvar$date <- yvar$date
+    yvar.m$value <- as.numeric(yvar.m$value)
+    #yvarSelected <- yvar[yvar$variable == input$plotselection, ]
+    if(input$makeScale){
+	scale.df.m <- aggregate(yvar.m$value, by = list(date = yvar.m$date), FUN = mean)
+    	colnames(scale.df.m) <- c("date", "value")
+      }
+   
+    if(!input$makeScale){ 
     ggplotly(
-      ggplot(yvarSelected, aes(x = date, y = value)) +
+      ggplot(yvar.m, aes(x = date, y = value)) +
         ggtitle("Raw Values") +
         geom_point() +
         #geom_smooth() +
@@ -98,7 +98,19 @@ shinyServer(function(input, output, session) {
         geom_line() +
         theme(legend.title = element_blank()) +
         scale_x_datetime()
-    )
+    )} else {
+	    ggplotly(
+      ggplot(scale.df.m, aes(x = date, y = value)) +
+        ggtitle("Scale Values") +
+        geom_point() +
+        #geom_smooth() +
+        #geom_vline(data = session, aes(xintercept = x), linetype = "longdash", colour= "black") +
+        geom_line() +
+        theme(legend.title = element_blank()) +
+        scale_x_datetime())
+   }
+
+
     
   })
   
@@ -119,9 +131,16 @@ shinyServer(function(input, output, session) {
     yvarComp$value <-
         complexity(
           yvarSelected$value,
-          width = 5
+          width = 7
       )
-    
+    if(input$makeScale){
+	scale.df.m <- aggregate(yvar.m$value, by = list(date = yvar.m$date), FUN = mean)
+    	colnames(scale.df.m) <- c("date", "value")
+	yvarComp <- scale.df.m
+	yvarComp$value <- complexity(scale.df.m$value, width = 7)
+	print(yvarComp)
+      }
+if(!input$makeScale){
     ggplotly(
       ggplot(yvarComp, aes(x = date, y = value)) +
         ggtitle("Dynamic Complexity") +
@@ -130,7 +149,15 @@ shinyServer(function(input, output, session) {
         geom_line() +
         theme(legend.title = element_blank()) +
         scale_x_datetime()
-    )
+    )} else {
+    ggplotly(
+      ggplot(yvarComp, aes(x = date, y = value)) +
+        ggtitle("Dynamic Complexity") +
+        geom_point() +
+        geom_smooth() +
+        geom_line() +
+        theme(legend.title = element_blank()) +
+        scale_x_datetime())}
   })
   
   
@@ -138,7 +165,7 @@ shinyServer(function(input, output, session) {
     options <- values$loaded$questions.short
     selectInput("plotselection",
                 "Choose Variables to Plot",
-                multiple = FALSE,
+                multiple = TRUE,
                 options)
   })
   
