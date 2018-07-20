@@ -13,38 +13,54 @@ shinyUI(fluidPage(
     div(img(src = "DynAMo.png", align = "center"), style = "text-align: center;"),
 
   sidebarLayout(
-    sidebarPanel("Dataset",
+    sidebarPanel("Datensatz",
                  width=3,
-                 shinyFilesButton('file', 'Load Dataset', 'Please select a dataset', FALSE),
+                 shinyFilesButton('file', 'Datensatz laden', 'Bitte Datensatz wählen', FALSE),
                  uiOutput("rawControls"), 
                  uiOutput("rawDateSelection"),
-                 htmlOutput("patinfo"),
-                 checkboxInput("showRaw", "Raw Plot", TRUE),
-                 checkboxInput("showRecurr", "Recurrence Plot", FALSE),
-                 checkboxInput("showComplexity", "Complexity Plot", TRUE),
-                 checkboxInput("makeScale", "Make scale", FALSE)
+                 tableOutput("patinfo")
                  ),
     mainPanel(
       tabsetPanel(
-        tabPanel("Time Series",
-                 splitLayout(cellWidths = c("33%","33%","33%"), 
-                             htmlOutput("rawPlotInfo")),
-                  conditionalPanel(condition = "input.showRaw==true",
-                    plotlyOutput("altRawPlot", width = "100%")),
-                  conditionalPanel(condition = "input.showComplexity==true",
-                    plotlyOutput("complexityPlot", width = "100%")),
-                  conditionalPanel(condition = "input.showRecurr==true",
-                    plotOutput("recurrencePlot", width = "110%"))
+        tabPanel("Verläufe",
+                 splitLayout(cellWidths = c("75%","25%"), 
+                  plotlyOutput("altRawPlot", width = "100%"),
+                  div(h4("Hinweis"), "Wenn Sie zwei",
+                      br("oder mehr Variablen"), "ausgewählt haben,", 
+                      br("können Sie die Fragen"), "zusammenfügen lassen",
+                      checkboxInput("makeScale", "Variablen Zusammenfügen", TRUE)))
                  ),
-        tabPanel("Overview",
-                 checkboxInput("rawOverview", "Show Raw Values", TRUE),
-                 plotlyOutput("heatmapOverview", width = "110%")),
-        tabPanel("Network Analysis",
-                plotOutput("networkPlot", "auto", "auto")
-                 ),
-
-        tabPanel("Help",
-                 includeMarkdown("hilfe.md"))
+        tabPanel("Offene Antworten",
+                 fluidPage(
+                   fluidRow(DT::dataTableOutput("tbl.offene")))
+                   ),
+        tabPanel("Faktor Analyse",
+                 splitLayout(cellWidths = c("75%","25%"),
+                             fluidRow(
+                               tableOutput("out.fa"), align="center", br(),br(),
+                               imageOutput("factorPlot", width = "500", height = "480")
+                             ),
+                             
+                             div(h4("Hinweis"), p("Die Faktoranalyse gruppiert Variablen,",br(),
+                                                  "die einen ähnlichen zeitlichen Verlauf", br(), 
+                                                  "aufweisen.", br(), br(),
+                                                  "Die Berechnung kann einige Augenblicke", br(), 
+                                                  "in Anspruch nehmen", br(), br(),
+                                                  "Untersucht werden die gesamten ", br(),
+                                                  "Variablen. Die Auswahl auf der linken", br(),
+                                                  "Seite wird hierbei nicht beachtet.")
+                             ))                 
+        ),
+        tabPanel("Netzwerk Analyse",
+                 splitLayout(cellWidths = c("75%","25%"),
+                             imageOutput("VAR", width = "500", height = "480"),
+                 div(h4("Hinweis"),"Bitte wählen Sie",br("links mindestens"), "zwei Variablen aus.",
+                     p(br("Es kann vorkommen,"), "dass kein Netzwerk", br("berechnet werden kann."), 
+                       br("Bitte wählen Sie"), "in einem solchen", br("Fall eine andere"), "Kombination aus")))                 
+                 ), 
+        
+        tabPanel("Hilfe",
+                 includeMarkdown("www/hilfe.md"))
                 )
               )
             )

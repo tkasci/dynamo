@@ -21,6 +21,57 @@ pacman::p_load(
   "tseries"
 )
 
+###
+
+##  detrend
+
+detrend.man <- function(data){
+  resultList <- vector("list", length = 2)
+  
+  sig = 0.05
+  x <- 1:nrow(data)
+  nVariables <- ncol(data)
+  
+  resultList[[1]] <- data
+  resultList[[2]] <- vector(mode = "list", length = nVariables)
+  
+  for(n in 1:nVariables){
+    y <- data[,n]
+    
+    lm1 <- lm(y ~ poly(x, 1, raw = T))
+    p1 <- summary(lm1)$coefficients[2,4]
+    if(p1 <= sig){
+      resultList[[1]][,n] <- lm1$residuals
+      resultList[[2]][[n]] <- lm1
+    }
+    
+    lm2 <- lm(y ~ poly(x, 2, raw = T))
+    p2 <- summary(lm2)$coefficients[3,4]
+    if(p1 <= sig){
+      aovobj <- Anova(lm2,lm1)
+      if(aovobj$`Pr(>F)`[1] <= sig) {
+        resultList[[1]][,n] <- lm2$residuals
+        resultList[[2]][[n]] <- lm2
+      }
+    }
+    
+    lm3 <- lm(y ~ poly(x, 3, raw = T))
+    p3 <- summary(lm3)$coefficients[3,4]
+    if(p3 <= sig){
+      aovobj <- Anova(lm3,lm2)
+      if(aovobj$`Pr(>F)`[1] <= sig) {
+        resultList[[1]][,n] <- lm3$residuals
+        resultList[[2]][[n]] <- lm3
+      }
+    }
+  }
+  
+  data2 <- resultList[[1]]
+  return(data2)
+}
+
+
+
 
 # Helper Functions ----
 
