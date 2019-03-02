@@ -1,150 +1,16 @@
 # Up to now, we can generate models with 2 to 5 factors.
 # Libraries ----
 require(shiny)
-require(ggplot2)
 require(pastecs)
 require(dplyr)
-require(TTR)
-require(shinyFiles)
 require(reshape2)
 require(vars)
 require(psych)
 require(scales)
-require(tseriesChaos)
 require(car)
 require(lavaan)
 
-# Helper Functions ----
-var_to_df <- function(x) {
-  if (x$K == 2) {
-    coefs <- cbind(
-      ML1 = x$varresult$ML1$coefficients,
-      ML2 = x$varresult$ML2$coefficients
-    )
-    rsq <- cbind(
-      ML1 = summary(x)$varresult$ML1$adj.r.squared,
-      ML2 = summary(x)$varresult$ML2$adj.r.squared
-    )
-    rownames(rsq) <- "rsq"
-    granger <- cbind(
-      ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
-      ML2 = causality(x, cause =
-                        "ML2")$Granger[3] < .05
-    )
-    rownames(granger) <-
-      "granger"
-    df <-
-      rbind(coefs[sort(rownames(coefs)), ],
-            rsq,
-            granger)
-  }
-  
-  if (x$K == 3) {
-    coefs <- cbind(
-      ML1 = x$varresult$ML1$coefficients,
-      ML2 = x$varresult$ML2$coefficients,
-      ML3 = x$varresult$ML3$coefficients
-    )
-    rsq <-
-      cbind(
-        ML1 = summary(x)$varresult$ML1$adj.r.squared,
-        ML2 = summary(x)$varresult$ML2$adj.r.squared,
-        ML3 = summary(x)$varresult$ML3$adj.r.squared
-      )
-    rownames(rsq) <-
-      "rsq"
-    granger <-
-      cbind(
-        ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
-        ML2 = causality(x, cause =
-                          "ML2")$Granger[3] < .05,
-        ML3 = causality(x, cause =
-                          "ML3")$Granger[3] < .05
-      )
-    rownames(granger) <-
-      "granger"
-    df <-
-      rbind(coefs[sort(rownames(coefs)), ],
-            rsq,
-            granger)
-  }
-  
-  if (x$K ==
-      4) {
-    coefs <- cbind(
-      ML1 = x$varresult$ML1$coefficients,
-      ML2 = x$varresult$ML2$coefficients,
-      ML3 = x$varresult$ML3$coefficients,
-      ML4 = x$varresult$ML4$coefficients
-    )
-    rsq <-
-      cbind(
-        ML1 = summary(x)$varresult$ML1$adj.r.squared,
-        ML2 = summary(x)$varresult$ML2$adj.r.squared,
-        ML3 = summary(x)$varresult$ML3$adj.r.squared,
-        ML4 = summary(x)$varresult$ML4$adj.r.squared
-      )
-    rownames(rsq) <-
-      "rsq"
-    granger <-
-      cbind(
-        ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
-        ML2 = causality(x, cause =
-                          "ML2")$Granger[3] < .05,
-        ML3 = causality(x, cause =
-                          "ML3")$Granger[3] < .05,
-        ML4 = causality(x, cause =
-                          "ML3")$Granger[3] < .05
-      )
-    rownames(granger) <-
-      "granger"
-    df <-
-      rbind(coefs[sort(rownames(coefs)), ],
-            rsq,
-            granger)
-  }
-  
-  if (x$K ==
-      5) {
-    coefs <- cbind(
-      ML1 = x$varresult$ML1$coefficients,
-      ML2 = x$varresult$ML2$coefficients,
-      ML3 = x$varresult$ML3$coefficients,
-      ML4 = x$varresult$ML4$coefficients,
-      ML5 = x$varresult$ML5$coefficients
-    )
-    rsq <-
-      cbind(
-        ML1 = summary(x)$varresult$ML1$adj.r.squared,
-        ML2 = summary(x)$varresult$ML2$adj.r.squared,
-        ML3 = summary(x)$varresult$ML3$adj.r.squared,
-        ML4 = summary(x)$varresult$ML4$adj.r.squared,
-        ML5 = summary(x)$varresult$ML5$adj.r.squared
-      )
-    rownames(rsq) <-
-      "rsq"
-    granger <-
-      cbind(
-        ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
-        ML2 = causality(x, cause =
-                          "ML2")$Granger[3] < .05,
-        ML3 = causality(x, cause =
-                          "ML3")$Granger[3] < .05,
-        ML4 = causality(x, cause =
-                          "ML4")$Granger[3] < .05,
-        ML5 = causality(x, cause =
-                          "ML5")$Granger[3] < .05
-      )
-    rownames(granger) <-
-      "granger"
-    df <-
-      rbind(coefs[sort(rownames(coefs)), ],
-            rsq,
-            granger)
-  }
-  
-  return(df)
-}
+
 
 # Models ----
 
@@ -154,6 +20,139 @@ generate.DATA.model <-
         nfact > 5) {
       return("Only models with 2 to 5 factors are supported.")
     }
+    
+    # Helper Functions ----
+    var_to_df <- function(x) {
+      if (x$K == 2) {
+        coefs <- cbind(
+          ML1 = x$varresult$ML1$coefficients,
+          ML2 = x$varresult$ML2$coefficients
+        )
+        rsq <- cbind(
+          ML1 = summary(x)$varresult$ML1$adj.r.squared,
+          ML2 = summary(x)$varresult$ML2$adj.r.squared
+        )
+        rownames(rsq) <- "rsq"
+        granger <- cbind(
+          ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
+          ML2 = causality(x, cause =
+                            "ML2")$Granger[3] < .05
+        )
+        rownames(granger) <-
+          "granger"
+        df <-
+          rbind(coefs[sort(rownames(coefs)), ],
+                rsq,
+                granger)
+      }
+      
+      if (x$K == 3) {
+        coefs <- cbind(
+          ML1 = x$varresult$ML1$coefficients,
+          ML2 = x$varresult$ML2$coefficients,
+          ML3 = x$varresult$ML3$coefficients
+        )
+        rsq <-
+          cbind(
+            ML1 = summary(x)$varresult$ML1$adj.r.squared,
+            ML2 = summary(x)$varresult$ML2$adj.r.squared,
+            ML3 = summary(x)$varresult$ML3$adj.r.squared
+          )
+        rownames(rsq) <-
+          "rsq"
+        granger <-
+          cbind(
+            ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
+            ML2 = causality(x, cause =
+                              "ML2")$Granger[3] < .05,
+            ML3 = causality(x, cause =
+                              "ML3")$Granger[3] < .05
+          )
+        rownames(granger) <-
+          "granger"
+        df <-
+          rbind(coefs[sort(rownames(coefs)), ],
+                rsq,
+                granger)
+      }
+      
+      if (x$K ==
+          4) {
+        coefs <- cbind(
+          ML1 = x$varresult$ML1$coefficients,
+          ML2 = x$varresult$ML2$coefficients,
+          ML3 = x$varresult$ML3$coefficients,
+          ML4 = x$varresult$ML4$coefficients
+        )
+        rsq <-
+          cbind(
+            ML1 = summary(x)$varresult$ML1$adj.r.squared,
+            ML2 = summary(x)$varresult$ML2$adj.r.squared,
+            ML3 = summary(x)$varresult$ML3$adj.r.squared,
+            ML4 = summary(x)$varresult$ML4$adj.r.squared
+          )
+        rownames(rsq) <-
+          "rsq"
+        granger <-
+          cbind(
+            ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
+            ML2 = causality(x, cause =
+                              "ML2")$Granger[3] < .05,
+            ML3 = causality(x, cause =
+                              "ML3")$Granger[3] < .05,
+            ML4 = causality(x, cause =
+                              "ML3")$Granger[3] < .05
+          )
+        rownames(granger) <-
+          "granger"
+        df <-
+          rbind(coefs[sort(rownames(coefs)), ],
+                rsq,
+                granger)
+      }
+      
+      if (x$K ==
+          5) {
+        coefs <- cbind(
+          ML1 = x$varresult$ML1$coefficients,
+          ML2 = x$varresult$ML2$coefficients,
+          ML3 = x$varresult$ML3$coefficients,
+          ML4 = x$varresult$ML4$coefficients,
+          ML5 = x$varresult$ML5$coefficients
+        )
+        rsq <-
+          cbind(
+            ML1 = summary(x)$varresult$ML1$adj.r.squared,
+            ML2 = summary(x)$varresult$ML2$adj.r.squared,
+            ML3 = summary(x)$varresult$ML3$adj.r.squared,
+            ML4 = summary(x)$varresult$ML4$adj.r.squared,
+            ML5 = summary(x)$varresult$ML5$adj.r.squared
+          )
+        rownames(rsq) <-
+          "rsq"
+        granger <-
+          cbind(
+            ML1 = causality(x, cause = "ML1")$Granger[3] < .05,
+            ML2 = causality(x, cause =
+                              "ML2")$Granger[3] < .05,
+            ML3 = causality(x, cause =
+                              "ML3")$Granger[3] < .05,
+            ML4 = causality(x, cause =
+                              "ML4")$Granger[3] < .05,
+            ML5 = causality(x, cause =
+                              "ML5")$Granger[3] < .05
+          )
+        rownames(granger) <-
+          "granger"
+        df <-
+          rbind(coefs[sort(rownames(coefs)), ],
+                rsq,
+                granger)
+      }
+      
+      return(df)
+    }
+    
     x <-
       as.data.frame(na.exclude(x))
     # Step 1: exploratory FA
@@ -162,8 +161,8 @@ generate.DATA.model <-
          rotate = "oblimin",
          fm = "ml",
          nfactors = nfact)
-    if (exp$TLI < .90 |
-        exp$crms > .12) {
+    if (exp$TLI < .95 |
+        exp$crms > .09) {
       return("No exploratory model with adequate fit was found.")
     }
     
@@ -187,21 +186,24 @@ generate.DATA.model <-
         model = terms,
         data = x,
         missing = "listwise",
-        std.ov = TRUE
+        estimator = "MLR",
+        std.ov = TRUE,
+        std.lv = TRUE
       )
     if (lavInspect(cfa, "converged") == FALSE) {
       return("Confirmatory model did not converge.")
     }
-    if (fitmeasures(cfa)[10] < .95 |
-        fitmeasures(cfa)[29] > .10) {
-      # Hu&Bentler(1999): In general (especially, under the nonrobustness condition), combinational rules of TLI < .95 and SRMR > .09 (or .10) are preferable when N< 500
+    fm.cfa <- fitmeasures(cfa, c("tli","srmr"))
+    if (fm.cfa[1] < .95 |
+        fm.cfa[2] > .09) {
+      # Hu&Bentler(1999): In general (especially, under the nonrobustness condition), combinational rules of TLI < .95 and SRMR > .09 (or .10) are preferable when N<500
       return(
         paste0(
           "Insufficient confirmatory model fit indices. TLI: ",
-          fitmeasures(cfa)[10],
+          fm.cfa[1],
           ", needs to be above .95. SRMR: ",
-          fitmeasures(cfa)[29],
-          ", needs to be below .10"
+          fm.cfa[2],
+          ", needs to be below .09"
         )
       )
     }
@@ -219,7 +221,7 @@ generate.DATA.model <-
       colSums(inspect(cfa, what = "std")$lambda ^ 2) / 3 # Compute variance for all three factors. When using standardized loadings, the variance in symptom variation can be obtained via the sum of squared factor loadings for each factor, divided by the number of factors.
     lagselect <-
       VARselect(na.exclude(cfa_scores$scores),
-                lag.max = 5,
+                lag.max = 2,
                 type = "both")$selection[1]
     varmodel <-
       VAR(
